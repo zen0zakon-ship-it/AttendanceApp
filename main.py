@@ -1,33 +1,47 @@
 # main.py
-from fastapi import FastAPI, Request, Depends, Form, status
+from datetime import date
+from math import radians, sin, cos, sqrt, atan2
+import random
+import uuid
+from typing import Optional
+
+from fastapi import (
+    FastAPI,
+    Request,
+    Depends,
+    Form,
+    status,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from datetime import date
-import uuid
-import random
-from math import radians, sin, cos, sqrt, atan2
-from typing import Optional
+from sqlalchemy import func, case
 
 from database import Base, engine, get_db
-from models import Student, Attendance
+from models import Student, Attendance, Admin
+
+# ---------------------------------
+# ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+# ---------------------------------
 
 app = FastAPI()
 
-# Создаём таблицы в БД
+# создаём таблицы в БД
 Base.metadata.create_all(bind=engine)
 
-# Статика и шаблоны
+# подключаем статику и шаблоны
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# ===== НАСТРОЙКИ ГЕОЗОНЫ (можно потом подправить) =====
-# Примерно центр Талдыкоргана. Можно будет заменить на точные координаты колледжа.
+
+# ---------------------------------
+# НАСТРОЙКИ ГЕОЗОНЫ КОЛЛЕДЖА
+# ---------------------------------
+# Примерные координаты – позже подправишь под точные
 COLLEGE_LAT = 45.01
 COLLEGE_LON = 78.22
-# Радиус в метрах, внутри которого разрешаем отметку
-ALLOWED_RADIUS_METERS = 400  # 400 м вокруг точки
+ALLOWED_RADIUS_METERS = 400  # радиус, внутри которого можно отметиться
 
 
 def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -43,10 +57,10 @@ def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> 
     return R * c
 
 
-# ========== ЯЗЫК ==========
-
+# ---------------------------------
+# ЯЗЫК И USER-AGENT
+# ---------------------------------
 def get_lang(request: Request) -> str:
-    """Читаем язык из cookie. По умолчанию RU."""
     lang = request.cookies.get("lang")
     if lang in ("ru", "kk"):
         return lang
@@ -55,7 +69,6 @@ def get_lang(request: Request) -> str:
 
 @app.get("/set-lang/{lang_code}")
 def set_language(lang_code: str, request: Request):
-    """Ставим cookie с языком и возвращаем пользователя назад."""
     if lang_code not in ("ru", "kk"):
         lang_code = "ru"
 
@@ -70,10 +83,17 @@ def set_language(lang_code: str, request: Request):
     return response
 
 
-# ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+def is_mobile_request(request: Request) -> bool:
+    """Простая проверка: мобилка или ПК."""
+    ua = (request.headers.get("user-agent") or "").lower()
+    return any(x in ua for x in ["iphone", "android", "ipad", "mobile"])
 
+
+# ---------------------------------
+# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+# ---------------------------------
 def ensure_test_student(db: Session):
-    """ВРЕМЕННО: создаём одного тестового студента, если БД пустая."""
+    """Создаём одного тестового студента, если БД пустая (для первых тестов)."""
     student = db.query(Student).first()
     if not student:
         s = Student(
@@ -83,6 +103,15 @@ def ensure_test_student(db: Session):
             group_name="IN-412",
         )
         db.add(s)
+        db.commit()
+
+
+def ensure_admin(db: Session):
+    """Создаём дефолтного админа, если его нет."""
+    admin = db.query(Admin).filter(Admin.username == "admin").first()
+    if not admin:
+        admin = Admin(username="admin", password="admin123")
+        db.add(admin)
         db.commit()
 
 
@@ -119,12 +148,29 @@ def get_student_by_device(request: Request, db: Session) -> Optional[Student]:
     )
 
 
-# ========== РОУТЫ ==========
+def get_current_admin(request: Request, db: Session) -> Optional[Admin]:
+    token = request.cookies.get("admin_session")
+    if not token:
+        return None
+    return db.query(Admin).filter(Admin.session_token == token).first()
 
+
+# ---------------------------------
+# РОУТЫ СТУДЕНТОВ
+# ---------------------------------
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     lang = get_lang(request)
     ensure_test_student(db)
+    ensure_admin(db)
+
+    # Студенты должны заходить ТОЛЬКО с телефона
+    if not is_mobile_request(request):
+        return templates.TemplateResponse(
+            "only_mobile.html",
+            {"request": request, "lang": lang},
+        )
+
     student = get_student_by_device(request, db)
     if student:
         return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
@@ -145,6 +191,7 @@ def login(
     lang = get_lang(request)
     fio = fio.strip()
 
+    # ищем студента по логину (ФИО)
     student = (
         db.query(Student)
         .filter(Student.login == fio, Student.is_active == True)
@@ -166,13 +213,13 @@ def login(
     cookie_device_uid = request.cookies.get("device_uid")
 
     if student.device_uid is None:
-        # Первый вход – привязываем устройство
+        # первый вход — привязываем устройство
         if not cookie_device_uid:
             cookie_device_uid = generate_device_uid()
         student.device_uid = cookie_device_uid
         db.commit()
     else:
-        # Уже есть привязка: проверяем устройство
+        # уже есть привязка — запрещаем вход с другого устройства
         if not cookie_device_uid or cookie_device_uid != student.device_uid:
             error_msg = (
                 "Это не привязанное устройство. Обратитесь к куратору."
@@ -199,6 +246,14 @@ def login(
 @app.get("/student", response_class=HTMLResponse)
 def student_home(request: Request, db: Session = Depends(get_db)):
     lang = get_lang(request)
+
+    # ещё раз защищаем от ПК
+    if not is_mobile_request(request):
+        return templates.TemplateResponse(
+            "only_mobile.html",
+            {"request": request, "lang": lang},
+        )
+
     student = get_student_by_device(request, db)
     if not student:
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -232,6 +287,13 @@ def mark_attendance(
     db: Session = Depends(get_db),
 ):
     lang = get_lang(request)
+
+    if not is_mobile_request(request):
+        return templates.TemplateResponse(
+            "only_mobile.html",
+            {"request": request, "lang": lang},
+        )
+
     student = get_student_by_device(request, db)
     if not student:
         return RedirectResponse(url="/", status_code=status.HTTP_302_FOUND)
@@ -243,18 +305,17 @@ def mark_attendance(
         .first()
     )
 
-    # Если уже отметился — просто уводим на страницу
     if attendance_today:
+        # уже отметился – просто вернём страницу
         return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
 
-    # ==== Проверяем геолокацию ====
+    # --- геолокация обязательна ---
     if lat is None or lon is None:
         error_msg = (
             "Не удалось получить геолокацию. Включите доступ к местоположению и попробуйте снова."
             if lang == "ru"
             else "Геолокация алынбады. Орналасқан жерге қолжеткізуді қосып, қайта көріңіз."
         )
-
         return templates.TemplateResponse(
             "student_home.html",
             {
@@ -291,7 +352,7 @@ def mark_attendance(
             status_code=400,
         )
 
-    # ==== Всё ок, отмечаем ====
+    # всё ок – сохраняем отметку
     motivation = generate_motivation_text(student, lang)
     record = Attendance(
         student_id=student.id,
@@ -305,3 +366,105 @@ def mark_attendance(
     db.commit()
 
     return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
+
+
+# ---------------------------------
+# РОУТЫ АДМИНИСТРАТОРА
+# ---------------------------------
+@app.get("/admin/login", response_class=HTMLResponse)
+def admin_login_form(request: Request, db: Session = Depends(get_db)):
+    lang = get_lang(request)
+    return templates.TemplateResponse(
+        "admin_login.html",
+        {"request": request, "error": None, "lang": lang},
+    )
+
+
+@app.post("/admin/login", response_class=HTMLResponse)
+def admin_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db),
+):
+    lang = get_lang(request)
+    admin = db.query(Admin).filter(Admin.username == username).first()
+
+    if not admin or admin.password != password:
+        error_msg = "Неверный логин или пароль"
+        return templates.TemplateResponse(
+            "admin_login.html",
+            {"request": request, "error": error_msg, "lang": lang},
+            status_code=400,
+        )
+
+    token = str(uuid.uuid4())
+    admin.session_token = token
+    db.commit()
+
+    resp = RedirectResponse("/admin/dashboard", status_code=302)
+    resp.set_cookie(
+        "admin_session",
+        token,
+        httponly=True,
+        samesite="lax",
+        max_age=60 * 60 * 8,
+    )
+    return resp
+
+
+@app.get("/admin/logout")
+def admin_logout(request: Request, db: Session = Depends(get_db)):
+    admin = get_current_admin(request, db)
+    if admin:
+        admin.session_token = None
+        db.commit()
+    resp = RedirectResponse("/admin/login", status_code=302)
+    resp.delete_cookie("admin_session")
+    return resp
+
+
+@app.get("/admin/dashboard", response_class=HTMLResponse)
+def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+    lang = get_lang(request)
+    admin = get_current_admin(request, db)
+    if not admin:
+        return RedirectResponse("/admin/login", status_code=302)
+
+    today = date.today()
+
+    # статистика по группам
+    group_stats = (
+        db.query(
+            Student.group_name.label("group_name"),
+            func.count(Student.id).label("total"),
+            func.coalesce(
+                func.sum(
+                    case((Attendance.status == 1, 1), else_=0)
+                ),
+                0,
+            ).label("present"),
+        )
+        .outerjoin(
+            Attendance,
+            (Attendance.student_id == Student.id) & (Attendance.date == today),
+        )
+        .group_by(Student.group_name)
+        .order_by(Student.group_name)
+        .all()
+    )
+
+    total_students = sum(g.total for g in group_stats)
+    total_present = sum(g.present for g in group_stats)
+
+    return templates.TemplateResponse(
+        "admin_dashboard.html",
+        {
+            "request": request,
+            "lang": lang,
+            "today": today,
+            "group_stats": group_stats,
+            "total_students": total_students,
+            "total_present": total_present,
+        },
+    )
