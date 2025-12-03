@@ -1,4 +1,4 @@
-/* ===== Базовые стили ===== */
+/* ======= БАЗА ======= */
 
 *,
 *::before,
@@ -8,333 +8,296 @@
 
 body {
     margin: 0;
-    min-height: 100vh;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    color: #0f172a;
-    background: radial-gradient(circle at top, #1e40af 0, #020617 45%, #020617 100%);
-    overflow-x: hidden;
-    position: relative;
+    background: radial-gradient(circle at top, #141e30 0, #0b0c10 35%, #000 70%);
+    color: #f5f7fb;
+    min-height: 100vh;
 }
 
-/* Мягкий подсвеченный фон */
-.bg-layer {
-    position: fixed;
-    inset: 0;
-    background:
-        radial-gradient(circle at 10% 20%, rgba(59,130,246,0.18) 0, transparent 45%),
-        radial-gradient(circle at 90% 80%, rgba(96,165,250,0.16) 0, transparent 50%);
-    pointer-events: none;
-    z-index: -1;
-}
+/* Центрируем приложение по экрану, но с отступом сверху */
 
-/* ===== Шапка приложения ===== */
-
-.app-header {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 16px 16px 0 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.app-logo {
-    width: 40px;
-    height: 40px;
-    border-radius: 999px;
-    background: radial-gradient(circle at 30% 30%, #e0f2fe 0, #1d4ed8 45%, #0f172a 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.6);
-}
-
-.logo-circle {
-    width: 18px;
-    height: 18px;
-    border-radius: 999px;
-    border: 2px solid rgba(239,246,255,0.95);
-    box-shadow: 0 0 8px rgba(239,246,255,0.8);
-}
-
-.app-title-block {
-    display: flex;
-    flex-direction: column;
-}
-
-.app-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #e5edff;
-    letter-spacing: 0.03em;
-}
-
-.app-subtitle {
-    font-size: 12px;
-    color: #9ca3af;
-}
-
-/* Переключатель языка */
-.lang-switch {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-}
-
-.lang-link {
-    color: #9ca3af;
-    text-decoration: none;
-    padding: 2px 7px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-}
-
-.lang-link:hover {
-    color: #e5edff;
-    border-color: rgba(148, 163, 184, 0.6);
-    background: rgba(15, 23, 42, 0.7);
-}
-
-.lang-link.active {
-    color: #e5edff;
-    border-color: rgba(59, 130, 246, 0.9);
-    background: rgba(37, 99, 235, 0.35);
-}
-
-/* ===== Контейнер страницы ===== */
-
-.page-container {
-    display: flex;
-    justify-content: center;
-    padding: 12px 16px 24px 16px;
-}
-
-.card-wrapper {
+.page {
     width: 100%;
-    max-width: 480px;
-    background: rgba(15, 23, 42, 0.88);
-    border-radius: 18px;
-    padding: 20px 18px 22px;
-    box-shadow:
-        0 16px 40px rgba(15, 23, 42, 0.65),
-        0 0 0 1px rgba(148, 163, 184, 0.18);
-    backdrop-filter: blur(16px);
-    animation: fadeSlideIn 0.5s ease-out;
+    max-width: 520px;
+    margin: 40px auto 32px; /* форма пониже */
+    padding: 0 16px 24px;
 }
 
-/* ===== Заголовки ===== */
+/* Для админ-страниц сделаем шире на ПК */
+
+@media (min-width: 900px) {
+    .admin-page,
+    .admin-login-page {
+        max-width: 960px;
+    }
+}
+
+/* ======= КАРТОЧКИ ======= */
+
+.card {
+    background: linear-gradient(135deg, rgba(30, 64, 175, 0.55), rgba(15, 23, 42, 0.98));
+    border-radius: 18px;
+    padding: 18px 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 20px 40px rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(18px);
+}
+
+.card-form {
+    padding-top: 22px;
+    padding-bottom: 22px;
+}
+
+.card-center {
+    text-align: center;
+}
+
+/* На мобильном логин уже узкий */
+.login-page .card-form {
+    max-width: 360px;
+    margin: 40px auto 24px;
+}
+
+/* Страница "только ПК" */
+.desktop-only-page .card-center {
+    max-width: 480px;
+    margin: 60px auto 24px;
+}
+
+/* Админ-логин на ПК – пошире */
+.admin-login-page .admin-card {
+    max-width: 480px;
+    margin: 80px auto 32px;
+}
+
+/* Для админ-дашборда – широкие блоки */
+.admin-page .card,
+.admin-page .page-header {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ======= ТЕКСТ ======= */
 
 .title {
-    text-align: center;
-    margin: 0 0 4px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #e5edff;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 6px;
 }
 
 .subtitle {
-    text-align: center;
-    margin: 0 0 16px;
-    font-size: 13px;
-    color: #9ca3af;
+    margin: 0 0 18px;
+    color: #cbd5f5;
+    font-size: 0.95rem;
 }
 
-/* ===== Формы ===== */
+.card-title {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* ======= ФОРМА ======= */
 
 .form {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    background: rgba(15, 23, 42, 0.9);
-    padding: 14px 14px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
-.action-form {
-    margin-top: 10px;
-}
-
-label {
-    font-size: 13px;
+.form-label {
+    font-size: 0.9rem;
+    margin-top: 4px;
     color: #e5e7eb;
 }
 
-input {
-    padding: 9px 10px;
-    border-radius: 9px;
-    border: 1px solid #4b5563;
-    font-size: 15px;
-    background: #020617;
+.input {
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    background: rgba(15, 23, 42, 0.9);
     color: #f9fafb;
+    padding: 10px 14px;
+    font-size: 0.95rem;
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-input::placeholder {
-    color: #6b7280;
+.input::placeholder {
+    color: #9ca3af;
 }
 
-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.7);
-    background: #020617;
+.input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7);
+    background: rgba(15, 23, 42, 0.95);
 }
 
-/* ===== Кнопки ===== */
+/* ======= КНОПКИ ======= */
 
 .btn {
-    margin-top: 12px;
-    padding: 11px 14px;
-    border: none;
     border-radius: 999px;
-    font-size: 15px;
-    font-weight: 600;
+    border: none;
     cursor: pointer;
-    transition:
-        background 0.18s ease,
-        transform 0.12s ease,
-        box-shadow 0.18s ease;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #2563eb, #4f46e5);
-    color: white;
-    box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
-}
-
-.btn-primary:hover {
-    background: linear-gradient(135deg, #1d4ed8, #4338ca);
-    transform: translateY(-1px);
-    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.55);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-    box-shadow: 0 10px 18px rgba(37, 99, 235, 0.34);
+    font-size: 0.97rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 18px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
 .btn-big {
     width: 100%;
-    font-size: 16px;
-}
-
-/* Лёгкая пульсация кнопки "Отметиться" */
-.pulse {
-    animation: pulseSoft 1.8s ease-out infinite;
-}
-
-/* ===== Подписи и подсказки ===== */
-
-.hint {
     margin-top: 10px;
-    font-size: 12px;
-    color: #9ca3af;
-    text-align: center;
 }
 
-.small-hint {
-    margin-top: 6px;
-    font-size: 11px;
-    color: #9ca3af;
-    text-align: center;
+.btn-primary {
+    background: linear-gradient(135deg, #0ea5e9, #22c55e);
+    color: #0f172a;
+    box-shadow: 0 12px 26px rgba(34, 197, 94, 0.45);
 }
 
-/* ===== Карточки и инфо ===== */
-
-.card {
-    background: rgba(15, 23, 42, 0.95);
-    padding: 14px 14px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(148, 163, 184, 0.3);
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 32px rgba(34, 197, 94, 0.6);
 }
 
-.card-info {
-    margin-bottom: 12px;
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.45);
 }
 
-.card-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    margin-bottom: 6px;
-}
-
-.card-row:last-child {
-    margin-bottom: 0;
-}
-
-.card-label {
-    color: #9ca3af;
-}
-
-.card-value {
+.btn-secondary {
+    background: rgba(15, 23, 42, 0.9);
     color: #e5e7eb;
-    font-weight: 500;
+    border: 1px solid rgba(148, 163, 184, 0.7);
 }
 
-/* Мотивация */
-
-.card-motivation {
-    margin-top: 12px;
-    background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(8,47,73,0.9));
-    border-color: rgba(59,130,246,0.6);
+.btn.secondary:hover {
+    background: rgba(15, 23, 42, 1);
 }
 
-.motivation-title {
-    font-size: 13px;
-    color: #bfdbfe;
-    margin-bottom: 6px;
+.btn.small {
+    font-size: 0.88rem;
+    padding: 7px 14px;
 }
 
-.motivation-text {
-    font-size: 13px;
-    color: #e5edff;
-}
-
-/* ===== Теги статуса ===== */
-
-.status-tag {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 12px;
-    font-weight: 500;
-    margin-bottom: 6px;
-}
-
-.status-tag-success {
-    background: rgba(22,163,74,0.16);
-    color: #bbf7d0;
-    border: 1px solid rgba(34,197,94,0.6);
-}
-
-/* ===== Оповещения ===== */
+/* ======= АЛЕРТЫ ======= */
 
 .alert {
-    padding: 9px 11px;
-    border-radius: 10px;
-    font-size: 13px;
-    margin-bottom: 10px;
+    border-radius: 12px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    margin-bottom: 8px;
 }
 
 .alert-error {
-    background: rgba(248, 113, 113, 0.12);
-    border: 1px solid rgba(248, 113, 113, 0.8);
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.7);
     color: #fecaca;
 }
 
-/* ===== Анимации ===== */
+/* ======= ШАПКА ДЛЯ АДМИНА ======= */
 
-@keyframes fadeSlideIn {
+.page-header {
+    margin: 0 0 14px;
+}
+
+.page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ======= СТАТ-КАРТОЧКИ ДЛЯ АДМИНА ======= */
+
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.card-stat {
+    background: radial-gradient(circle at top left, rgba(45, 212, 191, 0.4), rgba(15, 23, 42, 0.96));
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #a5b4fc;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* ======= ТАБЛИЦА ======= */
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.table thead {
+    background: rgba(15, 23, 42, 0.98);
+}
+
+.table th,
+.table td {
+    padding: 9px 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+    text-align: left;
+}
+
+.table th {
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.table tbody tr:hover {
+    background: rgba(30, 64, 175, 0.35);
+}
+
+/* ======= ССЫЛКА ДЛЯ АДМИНА НА СТРАНИЦЕ "ТОЛЬКО МОБИЛКА" ======= */
+
+.admin-link {
+    margin-top: 10px;
+    font-size: 0.9rem;
+}
+
+.admin-link a {
+    color: #7dd3fc;
+    text-decoration: none;
+}
+
+.admin-link a:hover {
+    text-decoration: underline;
+}
+
+/* ======= АНИМАЦИИ ======= */
+
+@keyframes fadeUp {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(12px);
     }
     to {
         opacity: 1;
@@ -342,51 +305,24 @@ input:focus {
     }
 }
 
-.animate-fade-up {
-    animation: fadeSlideIn 0.5s ease-out;
-}
-
-@keyframes popIn {
+@keyframes pop {
     0% {
-        opacity: 0;
         transform: scale(0.9);
+        opacity: 0;
     }
     60% {
+        transform: scale(1.03);
         opacity: 1;
-        transform: scale(1.02);
     }
     100% {
         transform: scale(1);
     }
 }
 
+.animate-fade-up {
+    animation: fadeUp 0.45s ease-out;
+}
+
 .animate-pop {
-    animation: popIn 0.3s ease-out;
-}
-
-@keyframes pulseSoft {
-    0% {
-        transform: translateY(0);
-        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
-    }
-    50% {
-        transform: translateY(-1px);
-        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.6);
-    }
-    100% {
-        transform: translateY(0);
-        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
-    }
-}
-
-/* ===== Адаптив ===== */
-
-@media (max-width: 360px) {
-    .card-wrapper {
-        padding: 18px 12px 18px;
-    }
-
-    .title {
-        font-size: 18px;
-    }
+    animation: pop 0.35s ease-out;
 }
