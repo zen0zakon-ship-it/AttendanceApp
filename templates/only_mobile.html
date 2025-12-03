@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Только с телефона
+{% endblock %}
+
+{% block content %}
+<div class="card card-center animate-fade-up">
+    <h1 class="title">
+        {% if lang == 'kk' %}
+            Бұл бетке тек телефон арқылы кіруге болады
+        {% else %}
+            Эта страница доступна только с телефона
+        {% endif %}
+    </h1>
+    <p class="subtitle">
+        {% if lang == 'kk' %}
+            Қатысуды белгілеу үшін топ жетекшісі берген QR-кодты телефонмен сканерлеңіз.
+        {% else %}
+            Для отметки посещаемости отсканируйте QR-код с телефона,
+            который вам дал куратор.
+        {% endif %}
+    </p>
+</div>
+{% endblock %}
