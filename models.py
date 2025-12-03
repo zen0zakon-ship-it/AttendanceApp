@@ -1,8 +1,15 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
 
+class Admin(Base):
+    __tablename__ = "admins"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)  # для простоты в виде текста
+    session_token = Column(String, nullable=True)
 
 class Student(Base):
     __tablename__ = "students"
@@ -32,3 +39,4 @@ class Attendance(Base):
     motivation_text = Column(String, nullable=True)
 
     student = relationship("Student", back_populates="attendance")
+
