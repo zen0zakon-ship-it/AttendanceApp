@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>{% block title %}Посещаемость{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="/static/css/styles.css" rel="stylesheet" />
+</head>
+<body>
+<div class="bg-layer"></div>
+
+<header class="app-header">
+    <div class="app-logo">
+        <div class="logo-circle"></div>
+    </div>
+    <div class="app-title-block">
+        <div class="app-title">
+            Attendance AI
+        </div>
+        <div class="app-subtitle">
+            {% if lang == 'kk' %}
+                Талдықорған жоғары политехникалық колледжі
+            {% else %}
+                Taldykorgan Polytech College
+            {% endif %}
+        </div>
+    </div>
+    <div class="lang-switch">
+        <a href="/set-lang/ru" class="lang-link {% if lang == 'ru' %}active{% endif %}">RU</a>
+        <a href="/set-lang/kk" class="lang-link {% if lang == 'kk' %}active{% endif %}">KZ</a>
+    </div>
+</header>
+
+<main class="page-container">
+    <div class="card-wrapper">
+        {% block content %}{% endblock %}
+    </div>
+</main>
+
+</body>
+</html>

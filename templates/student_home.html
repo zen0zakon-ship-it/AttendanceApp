@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if lang == 'kk' %}Қатысуды белгілеу{% else %}Отметка посещаемости{% endif %}
+{% endblock %}
+
+{% block content %}
+<h1 class="title">
+    {% if lang == 'kk' %}
+        Қатысуды белгілеу
+    {% else %}
+        Посещаемость
+    {% endif %}
+</h1>
+<p class="subtitle">
+    {% if lang == 'kk' %}
+        Күнделікті студенттің қатысуын белгілеу
+    {% else %}
+        Ежедневная отметка студента
+    {% endif %}
+</p>
+
+{% if error %}
+    <div class="alert alert-error animate-pop">
+        {{ error }}
+    </div>
+{% endif %}
+
+<div class="card card-info animate-fade-up">
+    <div class="card-row">
+        <span class="card-label">
+            {% if lang == 'kk' %}ТАӘ:{% else %}ФИО:{% endif %}
+        </span>
+        <span class="card-value">{{ student.full_name }}</span>
+    </div>
+    {% if student.group_name %}
+    <div class="card-row">
+        <span class="card-label">
+            {% if lang == 'kk' %}Тобы:{% else %}Группа:{% endif %}
+        </span>
+        <span class="card-value">{{ student.group_name }}</span>
+    </div>
+    {% endif %}
+    <div class="card-row">
+        <span class="card-label">
+            {% if lang == 'kk' %}Күні:{% else %}Дата:{% endif %}
+        </span>
+        <span class="card-value">{{ today }}</span>
+    </div>
+</div>
+
+{% if already_marked %}
+    <div class="status-tag status-tag-success animate-pop">
+        {% if lang == 'kk' %}
+            Бүгін қатысу белгіленді ✅
+        {% else %}
+            Вы уже отметились сегодня ✅
+        {% endif %}
+    </div>
+
+    {% if motivation %}
+    <div class="card card-motivation animate-fade-up">
+        <div class="motivation-title">
+            {% if lang == 'kk' %}
+                Күннің мотивациясы
+            {% else %}
+                Мотивация на день
+            {% endif %}
+        </div>
+        <div class="motivation-text">
+            {{ motivation }}
+        </div>
+    </div>
+    {% endif %}
+{% else %}
+    <form method="post" action="/student/mark" class="form action-form animate-fade-up">
+        <!-- сюда JS запишет координаты -->
+        <input type="hidden" name="lat" id="lat-input">
+        <input type="hidden" name="lon" id="lon-input">
+
+        <button type="submit" class="btn btn-primary btn-big pulse" id="mark-btn">
+            {% if lang == 'kk' %}
+                Қатысуды белгілеу
+            {% else %}
+                Отметиться
+            {% endif %}
+        </button>
+        <p class="small-hint" id="geo-status">
+            {% if lang == 'kk' %}
+                Геолокацияны қосыңыз, жүйе сіздің колледж аумағында екеніңізді тексереді.
+            {% else %}
+                Включите геолокацию — система проверит, что вы находитесь на территории колледжа.
+            {% endif %}
+        </p>
+    </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('.action-form');
+            if (!form) return;
+
+            const btn = document.getElementById('mark-btn');
+            const latInput = document.getElementById('lat-input');
+            const lonInput = document.getElementById('lon-input');
+            const statusEl = document.getElementById('geo-status');
+
+            // Сначала блокируем кнопку, пока не получим координаты
+            btn.disabled = true;
+            btn.classList.remove('pulse');
+
+            if (!navigator.geolocation) {
+                statusEl.textContent = '{% if lang == "kk" %}Сіздің браузеріңіз геолокацияны қолдамайды.{% else %}Ваш браузер не поддерживает геолокацию.{% endif %}';
+                return;
+            }
+
+            statusEl.textContent = '{% if lang == "kk" %}Орналасқан жер анықталуда...{% else %}Определяем ваше местоположение...{% endif %}';
+
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    latInput.value = pos.coords.latitude;
+                    lonInput.value = pos.coords.longitude;
+
+                    btn.disabled = false;
+                    btn.classList.add('pulse');
+
+                    statusEl.textContent = '{% if lang == "kk" %}Орналасқан жеріңіз анықталды, енді қатысуды белгілей аласыз.{% else %}Местоположение определено, можно отмечаться.{% endif %}';
+                },
+                function (err) {
+                    console.log('Geolocation error:', err);
+                    statusEl.textContent = '{% if lang == "kk" %}Геолокацияға қолжеткізуге рұқсат беріңіз. Онсыз қатысуды белгілеу мүмкін емес.{% else %}Разрешите доступ к геолокации в браузере. Без этого отметиться нельзя.{% endif %}';
+                    btn.disabled = true;
+                    btn.classList.remove('pulse');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    </script>
+{% endif %}
+{% endblock %}

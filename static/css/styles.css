@@ -1,0 +1,392 @@
+/* ===== Базовые стили ===== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #0f172a;
+    background: radial-gradient(circle at top, #1e40af 0, #020617 45%, #020617 100%);
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Мягкий подсвеченный фон */
+.bg-layer {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 10% 20%, rgba(59,130,246,0.18) 0, transparent 45%),
+        radial-gradient(circle at 90% 80%, rgba(96,165,250,0.16) 0, transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* ===== Шапка приложения ===== */
+
+.app-header {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 16px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app-logo {
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 30% 30%, #e0f2fe 0, #1d4ed8 45%, #0f172a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.6);
+}
+
+.logo-circle {
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    border: 2px solid rgba(239,246,255,0.95);
+    box-shadow: 0 0 8px rgba(239,246,255,0.8);
+}
+
+.app-title-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e5edff;
+    letter-spacing: 0.03em;
+}
+
+.app-subtitle {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Переключатель языка */
+.lang-switch {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+}
+
+.lang-link {
+    color: #9ca3af;
+    text-decoration: none;
+    padding: 2px 7px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.lang-link:hover {
+    color: #e5edff;
+    border-color: rgba(148, 163, 184, 0.6);
+    background: rgba(15, 23, 42, 0.7);
+}
+
+.lang-link.active {
+    color: #e5edff;
+    border-color: rgba(59, 130, 246, 0.9);
+    background: rgba(37, 99, 235, 0.35);
+}
+
+/* ===== Контейнер страницы ===== */
+
+.page-container {
+    display: flex;
+    justify-content: center;
+    padding: 12px 16px 24px 16px;
+}
+
+.card-wrapper {
+    width: 100%;
+    max-width: 480px;
+    background: rgba(15, 23, 42, 0.88);
+    border-radius: 18px;
+    padding: 20px 18px 22px;
+    box-shadow:
+        0 16px 40px rgba(15, 23, 42, 0.65),
+        0 0 0 1px rgba(148, 163, 184, 0.18);
+    backdrop-filter: blur(16px);
+    animation: fadeSlideIn 0.5s ease-out;
+}
+
+/* ===== Заголовки ===== */
+
+.title {
+    text-align: center;
+    margin: 0 0 4px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #e5edff;
+}
+
+.subtitle {
+    text-align: center;
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+/* ===== Формы ===== */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.9);
+    padding: 14px 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.action-form {
+    margin-top: 10px;
+}
+
+label {
+    font-size: 13px;
+    color: #e5e7eb;
+}
+
+input {
+    padding: 9px 10px;
+    border-radius: 9px;
+    border: 1px solid #4b5563;
+    font-size: 15px;
+    background: #020617;
+    color: #f9fafb;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+input::placeholder {
+    color: #6b7280;
+}
+
+input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.7);
+    background: #020617;
+}
+
+/* ===== Кнопки ===== */
+
+.btn {
+    margin-top: 12px;
+    padding: 11px 14px;
+    border: none;
+    border-radius: 999px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.18s ease,
+        transform 0.12s ease,
+        box-shadow 0.18s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: white;
+    box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8, #4338ca);
+    transform: translateY(-1px);
+    box-shadow: 0 16px 30px rgba(37, 99, 235, 0.55);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 10px 18px rgba(37, 99, 235, 0.34);
+}
+
+.btn-big {
+    width: 100%;
+    font-size: 16px;
+}
+
+/* Лёгкая пульсация кнопки "Отметиться" */
+.pulse {
+    animation: pulseSoft 1.8s ease-out infinite;
+}
+
+/* ===== Подписи и подсказки ===== */
+
+.hint {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+.small-hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+/* ===== Карточки и инфо ===== */
+
+.card {
+    background: rgba(15, 23, 42, 0.95);
+    padding: 14px 14px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.card-info {
+    margin-bottom: 12px;
+}
+
+.card-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.card-row:last-child {
+    margin-bottom: 0;
+}
+
+.card-label {
+    color: #9ca3af;
+}
+
+.card-value {
+    color: #e5e7eb;
+    font-weight: 500;
+}
+
+/* Мотивация */
+
+.card-motivation {
+    margin-top: 12px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(8,47,73,0.9));
+    border-color: rgba(59,130,246,0.6);
+}
+
+.motivation-title {
+    font-size: 13px;
+    color: #bfdbfe;
+    margin-bottom: 6px;
+}
+
+.motivation-text {
+    font-size: 13px;
+    color: #e5edff;
+}
+
+/* ===== Теги статуса ===== */
+
+.status-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.status-tag-success {
+    background: rgba(22,163,74,0.16);
+    color: #bbf7d0;
+    border: 1px solid rgba(34,197,94,0.6);
+}
+
+/* ===== Оповещения ===== */
+
+.alert {
+    padding: 9px 11px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.alert-error {
+    background: rgba(248, 113, 113, 0.12);
+    border: 1px solid rgba(248, 113, 113, 0.8);
+    color: #fecaca;
+}
+
+/* ===== Анимации ===== */
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-up {
+    animation: fadeSlideIn 0.5s ease-out;
+}
+
+@keyframes popIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.animate-pop {
+    animation: popIn 0.3s ease-out;
+}
+
+@keyframes pulseSoft {
+    0% {
+        transform: translateY(0);
+        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+    }
+    50% {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(37, 99, 235, 0.6);
+    }
+    100% {
+        transform: translateY(0);
+        box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+    }
+}
+
+/* ===== Адаптив ===== */
+
+@media (max-width: 360px) {
+    .card-wrapper {
+        padding: 18px 12px 18px;
+    }
+
+    .title {
+        font-size: 18px;
+    }
+}
