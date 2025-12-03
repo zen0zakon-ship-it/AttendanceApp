@@ -1,64 +1,44 @@
 {% extends "base.html" %}
 
-{% block title %}{% if lang == 'kk' %}Жүйеге кіру{% else %}Вход{% endif %}{% endblock %}
+{% block title %}
+    {% if lang == 'kk' %}Жүйеге кіру{% else %}Вход в систему{% endif %}
+{% endblock %}
 
 {% block content %}
-<h1 class="title">
-    {% if lang == 'kk' %}
-        Жүйеге кіру
-    {% else %}
-        Вход в систему
-    {% endif %}
-</h1>
-<p class="subtitle">
-    {% if lang == 'kk' %}
-        QR-код арқылы қатысуды белгілеу
-    {% else %}
-        Отметка посещаемости через QR-код
-    {% endif %}
-</p>
+<div class="page login-page">
+    <div class="card card-form animate-fade-up">
+        <h1 class="title">
+            {% if lang == 'kk' %}Қатысуды белгілеу{% else %}Отметка посещаемости{% endif %}
+        </h1>
+        <p class="subtitle">
+            {% if lang == 'kk' %}
+                Логин мен құпия сөзді енгізіңіз
+            {% else %}
+                Введите логин и пароль
+            {% endif %}
+        </p>
 
-{% if error %}
-    <div class="alert alert-error animate-pop">
-        {{ error }}
+        {% if error %}
+        <div class="alert alert-error animate-pop">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post" action="/login" class="form">
+            <label class="form-label">
+                {% if lang == 'kk' %}Логин{% else %}Логин{% endif %}
+            </label>
+            <input type="text" name="login" class="input" required placeholder="student01">
+
+            <label class="form-label">
+                {% if lang == 'kk' %}Құпия сөз{% else %}Пароль{% endif %}
+            </label>
+            <input type="password" name="password" class="input" required>
+
+            <button type="submit" class="btn btn-primary btn-big">
+                {% if lang == 'kk' %}Кіру{% else %}Войти{% endif %}
+            </button>
+        </form>
     </div>
-{% endif %}
-
-<form method="post" action="/login" class="form animate-fade-up">
-    <label for="fio">
-        {% if lang == 'kk' %}
-            ТАӘ
-        {% else %}
-            ФИО
-        {% endif %}
-    </label>
-    <input type="text" id="fio" name="fio"
-           placeholder="{% if lang == 'kk' %}Иванов Иван{% else %}Иванов Иван{% endif %}" required />
-
-    <label for="password">
-        {% if lang == 'kk' %}
-            Құпия сөз
-        {% else %}
-            Пароль
-        {% endif %}
-    </label>
-    <input type="password" id="password" name="password"
-           placeholder="{% if lang == 'kk' %}Құпия сөз{% else %}Пароль{% endif %}" required />
-
-    <button type="submit" class="btn btn-primary">
-        {% if lang == 'kk' %}
-            Кіру
-        {% else %}
-            Войти
-        {% endif %}
-    </button>
-</form>
-
-<p class="hint">
-    {% if lang == 'kk' %}
-        Студенттер үшін: топ жетекшісі берген ТАӘ және құпия сөзді пайдаланыңыз.
-    {% else %}
-        Для студентов: используйте ФИО и пароль, выданные вашим куратором.
-    {% endif %}
-</p>
+</div>
 {% endblock %}
