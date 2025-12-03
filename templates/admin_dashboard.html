@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Дашборд посещаемости{% endblock %}
+
+{% block content %}
+<div class="page admin-page">
+    <div class="page-header page-header-row">
+        <div>
+            <h1 class="title">Дашборд посещаемости</h1>
+            <p class="subtitle">Дата: {{ today }}</p>
+        </div>
+        <div class="header-actions">
+            <a href="/admin/logout" class="btn btn-secondary small">Выйти</a>
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        <div class="card card-stat animate-pop">
+            <div class="stat-label">Всего студентов</div>
+            <div class="stat-value">{{ total_students }}</div>
+        </div>
+        <div class="card card-stat animate-pop">
+            <div class="stat-label">Пришли сегодня</div>
+            <div class="stat-value">{{ total_present }}</div>
+        </div>
+    </div>
+
+    <div class="card animate-fade-up">
+        <h2 class="card-title">Посещаемость по группам</h2>
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Группа</th>
+                    <th>Всего</th>
+                    <th>Пришли</th>
+                    <th>%</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for g in group_stats %}
+                    <tr>
+                        <td>{{ g.group_name or "—" }}</td>
+                        <td>{{ g.total }}</td>
+                        <td>{{ g.present }}</td>
+                        <td>
+                            {% if g.total > 0 %}
+                                {{ (g.present * 100 // g.total) }}%
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
