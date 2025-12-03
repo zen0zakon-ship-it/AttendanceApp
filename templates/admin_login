@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Вход администратора{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="title">Вход администратора</h1>
+    <p class="subtitle">Просмотр посещаемости по группам</p>
+</div>
+
+<div class="card card-form animate-fade-up">
+    {% if error %}
+    <div class="alert alert-error animate-pop">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="/admin/login" class="form">
+        <label class="form-label">Логин</label>
+        <input type="text" name="username" class="input" required>
+
+        <label class="form-label">Пароль</label>
+        <input type="password" name="password" class="input" required>
+
+        <button type="submit" class="btn btn-primary btn-big">
+            Войти
+        </button>
+    </form>
+</div>
+{% endblock %}
