@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="page page-center">
-    <div class="card card-center animate-fade-up">
+    <section class="card card-form card-center animate-fade-up">
         <h1 class="title">
             {% if lang == 'kk' %}
                 Бұл бетке тек телефон арқылы кіруге болады
@@ -22,14 +22,15 @@
 
         <p class="subtitle small">
             {% if lang == 'kk' %}
-                Оқытушы/әкімші болсаңыз:
+                Егер сіз оқытушы немесе әкімші болсаңыз:
             {% else %}
-                Если вы преподаватель/администратор:
+                Если вы преподаватель или администратор:
             {% endif %}
         </p>
+
         <a href="/admin/login" class="btn btn-secondary">
             {% if lang == 'kk' %}Админге кіру{% else %}Вход администратора{% endif %}
         </a>
-    </div>
+    </section>
 </div>
 {% endblock %}
