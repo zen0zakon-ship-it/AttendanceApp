@@ -1,52 +1,37 @@
 {% extends "base.html" %}
 
-{% block title %}
-    {% if lang == 'kk' %}Жүйеге кіру{% else %}Вход в систему{% endif %}
-{% endblock %}
+{% block title %}Вход администратора{% endblock %}
+{% block shell_class %}admin-shell{% endblock %}
 
 {% block content %}
-<div class="page page-center">
-    <section class="card card-form animate-fade-up">
-        <h1 class="title">
-            {% if lang == 'kk' %}Қатысуды белгілеу{% else %}Отметка посещаемости{% endif %}
-        </h1>
-        <p class="subtitle">
-            {% if lang == 'kk' %}
-                Топ жетекшісі берген логин мен құпия сөзді енгізіңіз.
-            {% else %}
-                Введите логин и пароль, которые вы получили от куратора.
-            {% endif %}
-        </p>
+<div class="page page-center admin-page">
+    <section class="card card-form admin-card animate-fade-up">
+        <h1 class="title">Вход администратора</h1>
+        <p class="subtitle">Просмотр посещаемости по группам</p>
 
         {% if error %}
-        <div class="alert alert-error animate-pop">
-            {{ error }}
-        </div>
+        <div class="alert alert-error animate-pop">{{ error }}</div>
         {% endif %}
 
-        <form method="post" action="/login" class="form">
-            <label class="form-label">
-                {% if lang == 'kk' %}Логин{% else %}Логин{% endif %}
-            </label>
+        <form method="post" action="/admin/login" class="form">
+            <label class="form-label">Логин</label>
             <input
                 type="text"
-                name="login"
-                class="input input-lg"
+                name="username"
+                class="input input-xl"
                 autocomplete="username"
                 placeholder="Login">
 
-            <label class="form-label">
-                {% if lang == 'kk' %}Құпия сөз{% else %}Пароль{% endif %}
-            </label>
+            <label class="form-label">Пароль</label>
             <input
                 type="password"
                 name="password"
-                class="input input-lg"
+                class="input input-xl"
                 autocomplete="current-password"
                 placeholder="Password">
 
-            <button type="submit" class="btn btn-primary btn-big pulse">
-                {% if lang == 'kk' %}Кіру{% else %}Войти{% endif %}
+            <button type="submit" class="btn btn-primary btn-big">
+                Войти
             </button>
         </form>
     </section>
