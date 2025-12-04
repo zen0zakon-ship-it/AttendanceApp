@@ -3,34 +3,35 @@
 {% block title %}Только с телефона{% endblock %}
 
 {% block content %}
-<div class="page page-center">
-    <section class="card card-form card-center animate-fade-up">
-        <h1 class="title">
-            {% if lang == 'kk' %}
-                Бұл бетке тек телефон арқылы кіруге болады
-            {% else %}
-                Эта страница доступна только с телефона
-            {% endif %}
-        </h1>
-        <p class="subtitle">
-            {% if lang == 'kk' %}
-                Қатысуды белгілеу үшін колледждегі QR-кодты телефонмен сканерлеңіз.
-            {% else %}
-                Для отметки посещаемости отсканируйте QR-код в колледже с телефона.
-            {% endif %}
-        </p>
+<div class="auth-wrapper">
+  <div class="info-card animate-fade-up">
+    <h1 class="title">
+      {% if lang == 'kk' %}
+        Бұл бетке тек телефон арқылы кіруге болады
+      {% else %}
+        Студенттік бөлім доступен только с телефона
+      {% endif %}
+    </h1>
+    <p class="subtitle">
+      {% if lang == 'kk' %}
+        Студенттер үшін: топ жетекшісі берген QR-кодты телефон арқылы сканерлеңіз.
+      {% else %}
+        Для студентов: отсканируйте QR-код с телефона, чтобы войти и отметиться.
+      {% endif %}
+    </p>
 
-        <p class="subtitle small">
-            {% if lang == 'kk' %}
-                Егер сіз оқытушы немесе әкімші болсаңыз:
-            {% else %}
-                Если вы преподаватель или администратор:
-            {% endif %}
-        </p>
-
-        <a href="/admin/login" class="btn btn-secondary">
-            {% if lang == 'kk' %}Админге кіру{% else %}Вход администратора{% endif %}
-        </a>
-    </section>
+    <div class="admin-block">
+      <p class="admin-text">
+        {% if lang == 'kk' %}
+          Оқытушылар мен әкімшілер үшін төмендегі батырма арқылы жүйеге кіріңіз.
+        {% else %}
+          Для преподавателей и администрации доступ в систему через кнопку ниже.
+        {% endif %}
+      </p>
+      <a href="/admin/login" class="btn btn-primary btn-big">
+        Войти как админ
+      </a>
+    </div>
+  </div>
 </div>
 {% endblock %}
