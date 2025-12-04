@@ -1,39 +1,30 @@
 {% extends "base.html" %}
 
 {% block title %}Вход администратора{% endblock %}
-{% block shell_class %}admin-shell{% endblock %}
 
 {% block content %}
-<div class="page page-center admin-page">
-    <section class="card card-form admin-card animate-fade-up">
-        <h1 class="title">Вход администратора</h1>
-        <p class="subtitle">Просмотр посещаемости по группам</p>
+<div class="auth-wrapper admin-auth">
+  <div class="auth-card admin-card animate-fade-up">
+    <h1 class="title">Вход администратора</h1>
+    <p class="subtitle">
+      Панель мониторинга посещаемости по группам.
+    </p>
 
-        {% if error %}
-        <div class="alert alert-error animate-pop">{{ error }}</div>
-        {% endif %}
+    {% if error %}
+      <div class="alert alert-error animate-pop">{{ error }}</div>
+    {% endif %}
 
-        <form method="post" action="/admin/login" class="form">
-            <label class="form-label">Логин</label>
-            <input
-                type="text"
-                name="username"
-                class="input input-xl"
-                autocomplete="username"
-                placeholder="Login">
+    <form method="post" action="/admin/login" class="form">
+      <label class="form-label">Логин</label>
+      <input type="text" name="username" class="input" required placeholder="admin">
 
-            <label class="form-label">Пароль</label>
-            <input
-                type="password"
-                name="password"
-                class="input input-xl"
-                autocomplete="current-password"
-                placeholder="Password">
+      <label class="form-label">Пароль</label>
+      <input type="password" name="password" class="input" required placeholder="admin123">
 
-            <button type="submit" class="btn btn-primary btn-big">
-                Войти
-            </button>
-        </form>
-    </section>
+      <button type="submit" class="btn btn-primary btn-big">
+        Войти
+      </button>
+    </form>
+  </div>
 </div>
 {% endblock %}
