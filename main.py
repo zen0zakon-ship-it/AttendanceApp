@@ -1,4 +1,5 @@
 # main.py
+
 from datetime import date
 from math import radians, sin, cos, sqrt, atan2
 import random
@@ -9,32 +10,40 @@ from fastapi import FastAPI, Request, Depends, Form, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from sqlalchemy import func, case
 
 from database import Base, engine, get_db
 from models import Student, Attendance, Admin
 
+# -------------------------------------------------
+# ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+# -------------------------------------------------
+
 app = FastAPI()
 
-# создаём таблицы в БД
+# Создаём таблицы в БД
 Base.metadata.create_all(bind=engine)
 
-# статика и шаблоны
+# Статика и шаблоны
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# -----------------------------
+
+# -------------------------------------------------
 # ГЕОЗОНА КОЛЛЕДЖА
-# -----------------------------
-COLLEGE_LAT = 45.01   # сюда потом подставишь реальные координаты колледжа
+# -------------------------------------------------
+
+# сюда потом подставишь точные координаты колледжа
+COLLEGE_LAT = 45.01
 COLLEGE_LON = 78.22
-ALLOWED_RADIUS_METERS = 400  # радиус действия отметки в метрах
+ALLOWED_RADIUS_METERS = 400  # радиус, внутри которого можно отметиться (м)
 
 
 def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Расстояние между двумя точками в метрах (формула хаверсинуса)."""
-    R = 6371000
+    R = 6371000  # радиус Земли в метрах
     phi1 = radians(lat1)
     phi2 = radians(lat2)
     dphi = radians(lat2 - lat1)
@@ -45,9 +54,10 @@ def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> 
     return R * c
 
 
-# -----------------------------
+# -------------------------------------------------
 # ЯЗЫК И USER-AGENT
-# -----------------------------
+# -------------------------------------------------
+
 def get_lang(request: Request) -> str:
     lang = request.cookies.get("lang")
     if lang in ("ru", "kk"):
@@ -72,14 +82,15 @@ def set_language(lang_code: str, request: Request):
 
 
 def is_mobile_request(request: Request) -> bool:
-    """Простая проверка: мобилка или нет."""
+    """Очень простая проверка: мобильное устройство или нет."""
     ua = (request.headers.get("user-agent") or "").lower()
     return any(x in ua for x in ["iphone", "android", "ipad", "mobile"])
 
 
-# -----------------------------
+# -------------------------------------------------
 # ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-# -----------------------------
+# -------------------------------------------------
+
 def ensure_admin(db: Session):
     """Создаём дефолтного админа, если его нет."""
     admin = db.query(Admin).filter(Admin.username == "admin").first()
@@ -112,6 +123,7 @@ def generate_motivation_text(student: Student, lang: str) -> str:
 
 
 def get_student_by_device(request: Request, db: Session) -> Optional[Student]:
+    """Находим студента по device_uid в куках."""
     device_uid = request.cookies.get("device_uid")
     if not device_uid:
         return None
@@ -129,22 +141,22 @@ def get_current_admin(request: Request, db: Session) -> Optional[Admin]:
     return db.query(Admin).filter(Admin.session_token == token).first()
 
 
-# -----------------------------
+# -------------------------------------------------
 # РОУТЫ ДЛЯ СТУДЕНТОВ
-# -----------------------------
+# -------------------------------------------------
+
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     """
     Главная точка входа для студентов:
-    - с телефона → форма логина
-    - с ПК → страница с предупреждением + кнопка 'Войти как админ'
+    - если зашёл с телефона → форма логина
+    - если с ПК → страница-предупреждение + кнопка 'Войти как админ'
     """
     lang = get_lang(request)
     ensure_admin(db)
 
+    # Студенты – только с телефона
     if not is_mobile_request(request):
-        # ПК – показываем страницу что студентам нужен телефон,
-        # плюс кнопка "Войти как админ"
         return templates.TemplateResponse(
             "only_mobile.html",
             {"request": request, "lang": lang},
@@ -169,19 +181,35 @@ def login(
 ):
     """
     Логин студента:
-    - login → поле 'Логин' (ты сам решаешь, что там: ФИО, номер, и т.п.)
-    - password → пароли из твоей БД
+    - можно вводить ЛОГИН или ФИО (оба поля есть в таблице)
+    - пароль берётся из поля Student.password
     """
     lang = get_lang(request)
-    login_value = login.strip()
+    login_value = login.strip().lower()
+    password_value = password.strip()
 
+    # 1) ищем по Student.login (логин)
     student = (
         db.query(Student)
-        .filter(Student.login == login_value, Student.is_active == True)
+        .filter(
+            Student.is_active == True,
+            func.lower(Student.login) == login_value,
+        )
         .first()
     )
 
-    if not student or student.password != password:
+    # 2) если не нашли – ищем по full_name (ФИО)
+    if not student:
+        student = (
+            db.query(Student)
+            .filter(
+                Student.is_active == True,
+                func.lower(Student.full_name) == login_value,
+            )
+            .first()
+        )
+
+    if not student or (student.password or "").strip() != password_value:
         error_msg = (
             "Неверный логин или пароль"
             if lang == "ru"
@@ -196,13 +224,13 @@ def login(
     cookie_device_uid = request.cookies.get("device_uid")
 
     if student.device_uid is None:
-        # первый вход – привязываем устройство
+        # Первый вход – привязываем устройство
         if not cookie_device_uid:
             cookie_device_uid = generate_device_uid()
         student.device_uid = cookie_device_uid
         db.commit()
     else:
-        # уже привязан – запрещаем логин с другого устройства
+        # Уже привязан – запрещаем логин с другого устройства
         if not cookie_device_uid or cookie_device_uid != student.device_uid:
             error_msg = (
                 "Вход с этого устройства не разрешён. Обратитесь к куратору."
@@ -290,7 +318,7 @@ def mark_attendance(
     if attendance_today:
         return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
 
-    # геолокация обязательна
+    # Геолокация обязательна
     if lat is None or lon is None:
         error_msg = (
             "Не удалось получить геолокацию. Включите доступ к местоположению и попробуйте снова."
@@ -348,9 +376,10 @@ def mark_attendance(
     return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
 
 
-# -----------------------------
-# РОУТЫ АДМИНИСТРАТОРА
-# -----------------------------
+# -------------------------------------------------
+# РОУТЫ ДЛЯ АДМИНИСТРАТОРА
+# -------------------------------------------------
+
 @app.get("/admin/login", response_class=HTMLResponse)
 def admin_login_form(request: Request, db: Session = Depends(get_db)):
     lang = get_lang(request)
