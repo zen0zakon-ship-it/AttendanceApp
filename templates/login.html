@@ -5,16 +5,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="page login-page">
+<div class="page page-center">
     <div class="card card-form animate-fade-up">
         <h1 class="title">
             {% if lang == 'kk' %}Қатысуды белгілеу{% else %}Отметка посещаемости{% endif %}
         </h1>
         <p class="subtitle">
             {% if lang == 'kk' %}
-                Логин мен құпия сөзді енгізіңіз
+                Топ жетекшісі берген логин мен құпия сөзді енгізіңіз.
             {% else %}
-                Введите логин и пароль
+                Введите логин и пароль, которые вы получили от куратора.
             {% endif %}
         </p>
 
@@ -28,14 +28,14 @@
             <label class="form-label">
                 {% if lang == 'kk' %}Логин{% else %}Логин{% endif %}
             </label>
-            <input type="text" name="login" class="input" required placeholder="student01">
+            <input type="text" name="login" class="input" required placeholder="login123">
 
             <label class="form-label">
                 {% if lang == 'kk' %}Құпия сөз{% else %}Пароль{% endif %}
             </label>
-            <input type="password" name="password" class="input" required>
+            <input type="password" name="password" class="input" required placeholder="••••••">
 
-            <button type="submit" class="btn btn-primary btn-big">
+            <button type="submit" class="btn btn-primary btn-big pulse">
                 {% if lang == 'kk' %}Кіру{% else %}Войти{% endif %}
             </button>
         </form>
