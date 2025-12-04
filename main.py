@@ -24,12 +24,10 @@ Base.metadata.create_all(bind=engine)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# -----------------------------
-# НАСТРОЙКИ ГЕОЗОНЫ
-# -----------------------------
-COLLEGE_LAT = 45.01   # подправишь под реальные координаты
+# --------- ГЕОЗОНА КОЛЛЕДЖА ---------
+COLLEGE_LAT = 45.01
 COLLEGE_LON = 78.22
-ALLOWED_RADIUS_METERS = 400  # 400 м радиус
+ALLOWED_RADIUS_METERS = 400  # радиус вокруг колледжа в метрах
 
 
 def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
@@ -44,9 +42,7 @@ def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> 
     return R * c
 
 
-# -----------------------------
-# ЯЗЫК И USER-AGENT
-# -----------------------------
+# --------- ЯЗЫК ---------
 def get_lang(request: Request) -> str:
     lang = request.cookies.get("lang")
     if lang in ("ru", "kk"):
@@ -75,11 +71,8 @@ def is_mobile_request(request: Request) -> bool:
     return any(x in ua for x in ["iphone", "android", "ipad", "mobile"])
 
 
-# -----------------------------
-# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-# -----------------------------
+# --------- ВСПОМОГАТЕЛЬНЫЕ ---------
 def ensure_admin(db: Session):
-    """Создаём дефолтного админа, если его нет (admin/admin123)."""
     admin = db.query(Admin).filter(Admin.username == "admin").first()
     if not admin:
         admin = Admin(username="admin", password="admin123")
@@ -115,7 +108,7 @@ def get_student_by_device(request: Request, db: Session) -> Optional[Student]:
         return None
     return (
         db.query(Student)
-        .filter(Student.device_uid == device_uid)
+        .filter(Student.device_uid == device_uid, Student.is_active == True)
         .first()
     )
 
@@ -127,15 +120,13 @@ def get_current_admin(request: Request, db: Session) -> Optional[Admin]:
     return db.query(Admin).filter(Admin.session_token == token).first()
 
 
-# -----------------------------
-# РОУТЫ ДЛЯ СТУДЕНТОВ
-# -----------------------------
+# --------- СТУДЕНТЫ ---------
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
     lang = get_lang(request)
     ensure_admin(db)
 
-    # студенты должны заходить с телефона
+    # Студенты с ПК → страница "зайдите с телефона"
     if not is_mobile_request(request):
         return templates.TemplateResponse(
             "only_mobile.html",
@@ -159,18 +150,13 @@ def login(
     password: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """
-    Логинимся по полю login (из твоей базы) + пароль.
-    НИКАКОГО Иванова Иванова тут нет :)
-    """
     lang = get_lang(request)
-    login_value = login.strip()
+    login = login.strip()
 
-    # ВАЖНО: ищем только по login, БЕЗ is_active == True,
-    # чтобы старые записи из твоей БД тоже находились.
+    # ИЩЕМ ПО ПОЛЮ login И password ИЗ ТВОЕЙ БАЗЫ
     student = (
         db.query(Student)
-        .filter(Student.login == login_value)
+        .filter(Student.login == login, Student.is_active == True)
         .first()
     )
 
@@ -189,13 +175,11 @@ def login(
     cookie_device_uid = request.cookies.get("device_uid")
 
     if student.device_uid is None:
-        # первый вход – привязываем устройство
         if not cookie_device_uid:
             cookie_device_uid = generate_device_uid()
         student.device_uid = cookie_device_uid
         db.commit()
     else:
-        # уже привязан – не даём зайти с другого устройства
         if not cookie_device_uid or cookie_device_uid != student.device_uid:
             error_msg = (
                 "Это не привязанное устройство. Обратитесь к куратору."
@@ -283,7 +267,6 @@ def mark_attendance(
     if attendance_today:
         return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
 
-    # геолокация обязательна
     if lat is None or lon is None:
         error_msg = (
             "Не удалось получить геолокацию. Включите доступ к местоположению и попробуйте снова."
@@ -341,13 +324,10 @@ def mark_attendance(
     return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
 
 
-# -----------------------------
-# АДМИН-МОДУЛЬ
-# -----------------------------
+# --------- АДМИН ---------
 @app.get("/admin/login", response_class=HTMLResponse)
 def admin_login_form(request: Request, db: Session = Depends(get_db)):
     lang = get_lang(request)
-    ensure_admin(db)
     return templates.TemplateResponse(
         "admin_login.html",
         {"request": request, "error": None, "lang": lang},
