@@ -2,27 +2,31 @@
 
 // === Переключение языка (RU / KZ) ===
 function setLang(code) {
-  // Ставим cookie lang на год вперёд и просто перезагружаем текущую страницу
+  // Ставим cookie lang на 1 год
   var maxAge = 60 * 60 * 24 * 365;
-  document.cookie = "lang=" + encodeURIComponent(code) +
-                    ";path=/;max-age=" + maxAge.toString();
+  document.cookie =
+    "lang=" + encodeURIComponent(code) +
+    ";path=/;max-age=" + maxAge.toString();
+
+  // Перезагружаем текущую страницу (тот же URL, без прыжков)
   window.location.reload();
 }
 
-// === Геолокация для отметки посещаемости ===
+
+// === Геолокация для отметки посещаемости (страница студента) ===
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("mark-form");
   const btn = document.getElementById("mark-btn");
   const latInput = document.getElementById("lat-input");
   const lonInput = document.getElementById("lon-input");
 
+  // Если на странице нет формы отметки – просто ничего не делаем
   if (!form || !btn || !latInput || !lonInput) {
-    // на этой странице нет формы отметки — выходим
     return;
   }
 
   form.addEventListener("submit", (e) => {
-    // если координаты уже есть – просто отправляем
+    // Если координаты уже есть, просто отправляем форму
     if (latInput.value && lonInput.value) {
       return;
     }
