@@ -1,12 +1,12 @@
+# database.py
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# SQLite база рядом с проектом
 SQLALCHEMY_DATABASE_URL = "sqlite:///./attendance.db"
+# если у тебя уже есть MSSQL / PostgreSQL – просто поменяй строку выше
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
