@@ -1,5 +1,6 @@
 # main.py
-
+from sqlalchemy import func
+from models import Student, Attendance, Admin
 from datetime import date
 from math import radians, sin, cos, sqrt, atan2
 import random
@@ -160,7 +161,6 @@ def index(request: Request, db: Session = Depends(get_db)):
         {"request": request, "error": None, "lang": lang},
     )
 
-
 @app.post("/login", response_class=HTMLResponse)
 def login(
     request: Request,
@@ -168,12 +168,31 @@ def login(
     password: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """Логин студента: можно вводить login ИЛИ ФИО."""
+    """
+    Логин студента:
+    - если в таблице students вообще пусто → создаём тестового demo/1234
+    - можно вводить login ИЛИ ФИО (full_name)
+    """
     lang = get_lang(request)
+
+    # 1) Если в таблице студентов никого нет — создаём тестового demo / 1234
+    students_count = db.query(Student).count()
+    if students_count == 0:
+        demo = Student(
+            full_name="Тестовый Студент",
+            login="demo",
+            password="1234",
+            group_name="SW-999",
+            is_active=True,
+        )
+        db.add(demo)
+        db.commit()
+
+    # 2) Нормальная проверка логина
     login_value = login.strip().lower()
     password_value = password.strip()
 
-    # 1) по login
+    # сначала пробуем по login
     student = (
         db.query(Student)
         .filter(
@@ -183,7 +202,7 @@ def login(
         .first()
     )
 
-    # 2) если не нашли – по full_name
+    # если не нашли — пробуем по full_name (ФИО)
     if not student:
         student = (
             db.query(Student)
@@ -194,6 +213,7 @@ def login(
             .first()
         )
 
+    # если не нашли или пароль не совпал — ошибка
     if not student or (student.password or "").strip() != password_value:
         error_msg = (
             "Неверный логин или пароль"
@@ -206,14 +226,17 @@ def login(
             status_code=400,
         )
 
+    # 3) Привязка устройства
     cookie_device_uid = request.cookies.get("device_uid")
 
     if student.device_uid is None:
+        # Первый вход – привязываем устройство
         if not cookie_device_uid:
             cookie_device_uid = generate_device_uid()
         student.device_uid = cookie_device_uid
         db.commit()
     else:
+        # Уже привязан – запрещаем логин с другого устройства
         if not cookie_device_uid or cookie_device_uid != student.device_uid:
             error_msg = (
                 "Вход с этого устройства не разрешён. Обратитесь к куратору."
@@ -226,6 +249,7 @@ def login(
                 status_code=403,
             )
 
+    # 4) Ставим cookie и отправляем на /student
     response = RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
     response.set_cookie(
         key="device_uid",
@@ -459,3 +483,4 @@ def admin_dashboard(request: Request, db: Session = Depends(get_db)):
             "total_present": total_present,
         },
     )
+
