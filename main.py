@@ -160,7 +160,6 @@ def index(request: Request, db: Session = Depends(get_db)):
         "login.html",
         {"request": request, "error": None, "lang": lang},
     )
-
 @app.post("/login", response_class=HTMLResponse)
 def login(
     request: Request,
@@ -169,30 +168,62 @@ def login(
     db: Session = Depends(get_db),
 ):
     """
-    Логин студента:
-    - если в таблице students вообще пусто → создаём тестового demo/1234
-    - можно вводить login ИЛИ ФИО (full_name)
+    Логин студента.
+    1) Супер-простой демо-вход:
+       Login = demo, Password = 1234
+       — работает ВСЕГДА, независимо от того, что в базе.
+    2) Остальные логины — как обычно (login или ФИО + пароль).
     """
     lang = get_lang(request)
 
-    # 1) Если в таблице студентов никого нет — создаём тестового demo / 1234
-    students_count = db.query(Student).count()
-    if students_count == 0:
-        demo = Student(
-            full_name="Тестовый Студент",
-            login="demo",
-            password="1234",
-            group_name="SW-999",
-            is_active=True,
+    login_raw = login.strip()
+    password_raw = password.strip()
+
+    # ---------- 0. СУПЕР-ДЕМО ВХОД (demo / 1234) ----------
+    if login_raw.lower() == "demo" and password_raw == "1234":
+        # пробуем найти такого студента в БД
+        student = (
+            db.query(Student)
+            .filter(Student.login == "demo")
+            .first()
         )
-        db.add(demo)
+
+        # если нет — создаём В ЛЮБОМ СЛУЧАЕ
+        if not student:
+            student = Student(
+                full_name="Тестовый Студент",
+                login="demo",
+                password="1234",
+                group_name="SW-999",
+                is_active=True,
+            )
+            db.add(student)
+            db.commit()
+            db.refresh(student)
+
+        # привязка устройства
+        cookie_device_uid = request.cookies.get("device_uid")
+        if not cookie_device_uid:
+            cookie_device_uid = generate_device_uid()
+        student.device_uid = cookie_device_uid
         db.commit()
 
-    # 2) Нормальная проверка логина
-    login_value = login.strip().lower()
-    password_value = password.strip()
+        # редирект на /student
+        response = RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
+        response.set_cookie(
+            key="device_uid",
+            value=cookie_device_uid,
+            httponly=True,
+            samesite="lax",
+            max_age=60 * 60 * 24 * 365,
+        )
+        return response
 
-    # сначала пробуем по login
+    # ---------- 1. Обычный вход (для реальных студентов) ----------
+    login_value = login_raw.lower()
+    password_value = password_raw
+
+    # сначала ищем по login
     student = (
         db.query(Student)
         .filter(
@@ -202,7 +233,7 @@ def login(
         .first()
     )
 
-    # если не нашли — пробуем по full_name (ФИО)
+    # если не нашли — ищем по full_name (ФИО)
     if not student:
         student = (
             db.query(Student)
@@ -226,17 +257,15 @@ def login(
             status_code=400,
         )
 
-    # 3) Привязка устройства
+    # ---------- 2. Привязка устройства для обычных логинов ----------
     cookie_device_uid = request.cookies.get("device_uid")
 
     if student.device_uid is None:
-        # Первый вход – привязываем устройство
         if not cookie_device_uid:
             cookie_device_uid = generate_device_uid()
         student.device_uid = cookie_device_uid
         db.commit()
     else:
-        # Уже привязан – запрещаем логин с другого устройства
         if not cookie_device_uid or cookie_device_uid != student.device_uid:
             error_msg = (
                 "Вход с этого устройства не разрешён. Обратитесь к куратору."
@@ -249,7 +278,6 @@ def login(
                 status_code=403,
             )
 
-    # 4) Ставим cookie и отправляем на /student
     response = RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
     response.set_cookie(
         key="device_uid",
@@ -259,7 +287,6 @@ def login(
         max_age=60 * 60 * 24 * 365,
     )
     return response
-
 
 @app.get("/student", response_class=HTMLResponse)
 def student_home(request: Request, db: Session = Depends(get_db)):
@@ -483,4 +510,5 @@ def admin_dashboard(request: Request, db: Session = Depends(get_db)):
             "total_present": total_present,
         },
     )
+
 
