@@ -1,36 +1,38 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Attendance{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/css/styles.css">
+  <meta charset="UTF-8">
+  <title>{% block title %}Attendance{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="/static/css/styles.css" rel="stylesheet">
 </head>
 <body>
-<div class="bg-orbit"></div>
-<div class="bg-orbit bg-orbit-2"></div>
-
-<div class="app-shell {% block shell_class %}{% endblock %}">
+<div class="app-root">
+  <div class="app-shell">
     <header class="app-header">
-        <div class="brand">
-            <div class="brand-logo">AI</div>
-            <div class="brand-text">
-                <div class="brand-title">Attendance</div>
-                <div class="brand-subtitle">Taldykorgan Polytech College</div>
-            </div>
+      <div class="brand">
+        <div class="brand-logo">AI</div>
+        <div class="brand-text">
+          <div class="brand-title">Attendance</div>
+          <div class="brand-subtitle">Taldykorgan Polytech College</div>
         </div>
-
-        <nav class="lang-switch">
-            <a href="/set-lang/ru"
-               class="lang-pill {% if lang == 'ru' %}active{% endif %}">RU</a>
-            <a href="/set-lang/kk"
-               class="lang-pill {% if lang == 'kk' %}active{% endif %}">KZ</a>
-        </nav>
+      </div>
+      <div class="header-right">
+        <div class="lang-switch">
+          <a href="/set-lang/ru"
+             class="lang-btn {% if lang == 'ru' %}active{% endif %}">RU</a>
+          <a href="/set-lang/kk"
+             class="lang-btn {% if lang == 'kk' %}active{% endif %}">KZ</a>
+        </div>
+      </div>
     </header>
 
     <main class="app-main">
-        {% block content %}{% endblock %}
+      {% block content %}{% endblock %}
     </main>
+  </div>
 </div>
+
+<script src="/static/js/student.js"></script>
 </body>
 </html>
