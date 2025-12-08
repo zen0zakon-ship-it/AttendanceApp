@@ -23,10 +23,8 @@ from models import Student, Attendance, Admin
 
 app = FastAPI()
 
-# Создаём таблицы в БД
 Base.metadata.create_all(bind=engine)
 
-# Статика и шаблоны
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -35,15 +33,13 @@ templates = Jinja2Templates(directory="templates")
 # ГЕОЗОНА КОЛЛЕДЖА
 # -------------------------------------------------
 
-# сюда потом подставишь точные координаты колледжа
-COLLEGE_LAT = 45.01
+COLLEGE_LAT = 45.01  # потом поставишь свои
 COLLEGE_LON = 78.22
-ALLOWED_RADIUS_METERS = 400  # радиус, внутри которого можно отметиться (м)
+ALLOWED_RADIUS_METERS = 400  # метров
 
 
 def haversine_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Расстояние между двумя точками в метрах (формула хаверсинуса)."""
-    R = 6371000  # радиус Земли в метрах
+    R = 6371000
     phi1 = radians(lat1)
     phi2 = radians(lat2)
     dphi = radians(lat2 - lat1)
@@ -82,7 +78,6 @@ def set_language(lang_code: str, request: Request):
 
 
 def is_mobile_request(request: Request) -> bool:
-    """Очень простая проверка: мобильное устройство или нет."""
     ua = (request.headers.get("user-agent") or "").lower()
     return any(x in ua for x in ["iphone", "android", "ipad", "mobile"])
 
@@ -92,7 +87,7 @@ def is_mobile_request(request: Request) -> bool:
 # -------------------------------------------------
 
 def ensure_admin(db: Session):
-    """Создаём дефолтного админа, если его нет."""
+    """Создаём дефолтного админа, если нет."""
     admin = db.query(Admin).filter(Admin.username == "admin").first()
     if not admin:
         admin = Admin(username="admin", password="admin123")
@@ -123,7 +118,6 @@ def generate_motivation_text(student: Student, lang: str) -> str:
 
 
 def get_student_by_device(request: Request, db: Session) -> Optional[Student]:
-    """Находим студента по device_uid в куках."""
     device_uid = request.cookies.get("device_uid")
     if not device_uid:
         return None
@@ -147,15 +141,10 @@ def get_current_admin(request: Request, db: Session) -> Optional[Admin]:
 
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, db: Session = Depends(get_db)):
-    """
-    Главная точка входа для студентов:
-    - если зашёл с телефона → форма логина
-    - если с ПК → страница-предупреждение + кнопка 'Войти как админ'
-    """
     lang = get_lang(request)
     ensure_admin(db)
 
-    # Студенты – только с телефона
+    # студенты – только с телефона
     if not is_mobile_request(request):
         return templates.TemplateResponse(
             "only_mobile.html",
@@ -179,16 +168,12 @@ def login(
     password: str = Form(...),
     db: Session = Depends(get_db),
 ):
-    """
-    Логин студента:
-    - можно вводить ЛОГИН или ФИО (оба поля есть в таблице)
-    - пароль берётся из поля Student.password
-    """
+    """Логин студента: можно вводить login ИЛИ ФИО."""
     lang = get_lang(request)
     login_value = login.strip().lower()
     password_value = password.strip()
 
-    # 1) ищем по Student.login (логин)
+    # 1) по login
     student = (
         db.query(Student)
         .filter(
@@ -198,7 +183,7 @@ def login(
         .first()
     )
 
-    # 2) если не нашли – ищем по full_name (ФИО)
+    # 2) если не нашли – по full_name
     if not student:
         student = (
             db.query(Student)
@@ -224,13 +209,11 @@ def login(
     cookie_device_uid = request.cookies.get("device_uid")
 
     if student.device_uid is None:
-        # Первый вход – привязываем устройство
         if not cookie_device_uid:
             cookie_device_uid = generate_device_uid()
         student.device_uid = cookie_device_uid
         db.commit()
     else:
-        # Уже привязан – запрещаем логин с другого устройства
         if not cookie_device_uid or cookie_device_uid != student.device_uid:
             error_msg = (
                 "Вход с этого устройства не разрешён. Обратитесь к куратору."
@@ -318,7 +301,6 @@ def mark_attendance(
     if attendance_today:
         return RedirectResponse(url="/student", status_code=status.HTTP_302_FOUND)
 
-    # Геолокация обязательна
     if lat is None or lon is None:
         error_msg = (
             "Не удалось получить геолокацию. Включите доступ к местоположению и попробуйте снова."
