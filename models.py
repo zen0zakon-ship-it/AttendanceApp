@@ -1,23 +1,26 @@
-from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey, Text
+# models.py
+from sqlalchemy import Column, Integer, String, Date, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
+
 
 class Admin(Base):
     __tablename__ = "admins"
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
-    password = Column(String)  # для простоты в виде текста
+    password = Column(String)  # потом можно будет заменить на хэш
     session_token = Column(String, nullable=True)
+
 
 class Student(Base):
     __tablename__ = "students"
 
     id = Column(Integer, primary_key=True, index=True)
     full_name = Column(String, nullable=False)
-    login = Column(String, unique=True, index=True)
-    password = Column(String, nullable=False)      # пока в открытую, потом сделаем хэш
+    login = Column(String, unique=False, index=True)   # можно одинаковые логины в разных группах
+    password = Column(String, nullable=False)
     group_name = Column(String, nullable=True)
     device_uid = Column(String, nullable=True)
     is_active = Column(Boolean, default=True)
@@ -39,4 +42,3 @@ class Attendance(Base):
     motivation_text = Column(String, nullable=True)
 
     student = relationship("Student", back_populates="attendance")
-
